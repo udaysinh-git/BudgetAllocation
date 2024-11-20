@@ -45,20 +45,29 @@ void allocateBudget(Project projects[], int n, double budget, HWND hEdit) {
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    static HWND hEdit, hButton, hEntries[22];
+    static HWND hEdit, hButton, hEntries[22], hStatus;
     static int numProjects = 0;
     static HWND *projectEntries = NULL;
 
     switch (uMsg) {
         case WM_CREATE: {
-            CreateWindow("STATIC", "Enter the number of projects:", WS_VISIBLE | WS_CHILD, 10, 10, 200, 20, hwnd, NULL, NULL, NULL);
-            hEntries[0] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 220, 10, 100, 20, hwnd, NULL, NULL, NULL);
+            CreateWindow("STATIC", "Enter the number of projects:", WS_VISIBLE | WS_CHILD, 10, 10, 300, 30, hwnd, NULL, NULL, NULL);
+            hEntries[0] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 320, 10, 150, 30, hwnd, NULL, NULL, NULL);
 
-            CreateWindow("STATIC", "Enter the total budget:", WS_VISIBLE | WS_CHILD, 10, 40, 200, 20, hwnd, NULL, NULL, NULL);
-            hEntries[1] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 220, 40, 100, 20, hwnd, NULL, NULL, NULL);
+            CreateWindow("STATIC", "Enter the total budget:", WS_VISIBLE | WS_CHILD, 10, 50, 300, 30, hwnd, NULL, NULL, NULL);
+            hEntries[1] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 320, 50, 150, 30, hwnd, NULL, NULL, NULL);
 
-            hButton = CreateWindow("BUTTON", "Set Projects", WS_VISIBLE | WS_CHILD, 330, 10, 100, 50, hwnd, (HMENU)2, NULL, NULL);
-            hEdit = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL, 10, 410, 420, 150, hwnd, NULL, NULL, NULL);
+            hButton = CreateWindow("BUTTON", "Set Projects", WS_VISIBLE | WS_CHILD, 480, 10, 150, 70, hwnd, (HMENU)2, NULL, NULL);
+            hEdit = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL, 10, 500, 620, 200, hwnd, NULL, NULL, NULL);
+            hStatus = CreateWindow("STATIC", "", WS_VISIBLE | WS_CHILD | SS_SUNKEN, 10, 710, 620, 30, hwnd, NULL, NULL, NULL);
+            break;
+        }
+        case WM_SIZE: {
+            RECT rect;
+            GetClientRect(hwnd, &rect);
+
+            MoveWindow(hEdit, 10, rect.bottom - 250, rect.right - 20, 200, TRUE);
+            MoveWindow(hStatus, 10, rect.bottom - 40, rect.right - 20, 30, TRUE);
             break;
         }
         case WM_COMMAND: {
@@ -83,13 +92,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 for (int i = 0; i < numProjects; i++) {
                     char label_text[64];
                     snprintf(label_text, sizeof(label_text), "Enter cost and benefit for Project %d:", i + 1);
-                    CreateWindow("STATIC", label_text, WS_VISIBLE | WS_CHILD, 10, 70 + i * 30, 200, 20, hwnd, NULL, NULL, NULL);
+                    CreateWindow("STATIC", label_text, WS_VISIBLE | WS_CHILD, 10, 90 + i * 40, 300, 30, hwnd, NULL, NULL, NULL);
 
-                    projectEntries[i * 2] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 220, 70 + i * 30, 100, 20, hwnd, NULL, NULL, NULL);
-                    projectEntries[i * 2 + 1] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 330, 70 + i * 30, 100, 20, hwnd, NULL, NULL, NULL);
+                    projectEntries[i * 2] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 320, 90 + i * 40, 150, 30, hwnd, NULL, NULL, NULL);
+                    projectEntries[i * 2 + 1] = CreateWindow("EDIT", "", WS_VISIBLE | WS_CHILD | WS_BORDER, 480, 90 + i * 40, 150, 30, hwnd, NULL, NULL, NULL);
                 }
 
-                CreateWindow("BUTTON", "Allocate Budget", WS_VISIBLE | WS_CHILD, 10, 70 + numProjects * 30 + 10, 150, 30, hwnd, (HMENU)1, NULL, NULL);
+                CreateWindow("BUTTON", "Allocate Budget", WS_VISIBLE | WS_CHILD, 10, 90 + numProjects * 40 + 10, 150, 40, hwnd, (HMENU)1, NULL, NULL);
+                SetWindowText(hStatus, "Projects set. Enter costs and benefits.");
             } else if (LOWORD(wParam) == 1) {
                 char buffer[256];
                 GetWindowText(hEntries[1], buffer, sizeof(buffer));
@@ -112,6 +122,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
                 allocateBudget(projects, numProjects, budget, hEdit);
                 free(projects);
+                SetWindowText(hStatus, "Budget allocated successfully.");
             }
             break;
         }
@@ -144,7 +155,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         CLASS_NAME,
         "Budget Allocation",
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 450, 600,
+        CW_USEDEFAULT, CW_USEDEFAULT, 700, 800,
         NULL,
         NULL,
         hInstance,
